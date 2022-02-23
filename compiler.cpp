@@ -1,46 +1,42 @@
 #include <iostream>
 #include <string>
 #include <array>
+#include <fstream>
 
-using Storage_size = std::array<char, 8>;
-
-void testCompiler();
 std::string compiler(std::string code);
 
-int main()
+int main(int argc, char** argv)
 {
-    testCompiler();
-    return 0;
-}
+    std::ifstream ifs(argv[1]);
+    std::string srcCode;
 
-void testCompiler()
-{
-    auto result = compiler("++++++++++[>++++++++++<-]>++++.+.");
-    if ("hi" == result)
-        std::cout << "compiler succeded!";
-    else
+    if (argc > 1)
     {
-        std::cout << "compiler failed!\n" << "Result is: \'" << result << '\'';
+        srcCode.assign( (std::istreambuf_iterator<char>(ifs)),
+                      (std::istreambuf_iterator<char>()   ));
+    } else {
+        std::cout << "No file to run";
     }
-}
-
-void sPlus(Storage_size& storage, int ptr)
-{
-    storage[ptr]++;
+    std::cout << compiler(srcCode);
+    return 0;
 }
 
 std::string compiler(std::string code)
 {
+    using Storage_size = std::array<char, 8>;
+
     const int maxStorage {8};
     Storage_size storage {};
     int ptr {0};
+    int keyBeginLoop {0};
     std::string finalText {};
+
     for (int key{0}; key < code.length(); key++)
     {
         switch (code[key])
         {
             case '+':
-                sPlus(storage, ptr);
+                storage[ptr]++;
                 break;
             case '-':
                 storage[ptr]--;
@@ -57,11 +53,12 @@ std::string compiler(std::string code)
                 if (ptr < 0) ptr = maxStorage - 1;
                 break;
             case '[':
-                // TODO: work here
-                int indexBracket {};
-                while (1 != 0)
+                keyBeginLoop = key;
+                break;
+            case ']':
+                if (storage[ptr] != 0)
                 {
-
+                    key = keyBeginLoop;
                 }
                 break;
             default:
